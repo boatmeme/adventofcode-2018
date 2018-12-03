@@ -48,7 +48,6 @@ const measureOverlap = (claims = []) => {
 (async () => {
   const inputs = await readFile(`${__dirname}/input.txt`, inputParser);
   const filteredInputs = inputs.filter(o => o !== null);
-  console.log(filteredInputs);
 
   const answer = measureOverlap(filteredInputs);
 

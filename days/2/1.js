@@ -3,7 +3,6 @@ const { readFile } = require('../../utils');
 const mostArray = [];
 
 const countTwosAndThrees = (str = '') => {
-  console.log(str);
   const chars = str.split('');
   const uniq = {};
   chars.forEach(c => {
