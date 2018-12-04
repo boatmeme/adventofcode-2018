@@ -2,7 +2,7 @@ const { readFile } = require('../../utils');
 
 const mostArray = [];
 
-const contains = (arr = [], val) => {
+const contains = (val) => {
   if (!mostArray[val]) {
     mostArray[val] = 1;
     return 0;
@@ -10,20 +10,16 @@ const contains = (arr = [], val) => {
   return 1;
 }
 
-const reduceFrequencies = (inputs, startAcc = 0, startFreq = []) => {
-  return inputs.reduce(({ acc, freq, first }, val) => {
-    if (!val && val !== 0) return { acc, freq, first };
-    const newFreq = acc + val;
-    return {
-      acc: newFreq,
-      freq: [...freq, newFreq],
-      first: first > -Infinity
-        ? first
-        : contains( freq, newFreq )
-          ? newFreq
-          : first,
+const reduceFrequencies = (inputs, acc = 0) => {
+  for (let i = 0; i < inputs.length; i++) {
+    const val = inputs[i];
+    if (!val && val !== 0) continue;
+    acc += val;
+    if (contains(acc)) {
+      return acc;
     }
-  }, { acc: startAcc, freq: startFreq, first: -Infinity });
+  }
+  return reduceFrequencies(inputs, acc);
 }
 
 const startTime = Date.now();
@@ -34,11 +30,8 @@ const startTime = Date.now();
     v => parseInt(v, 10)
   );
 
-  let answer = reduceFrequencies(inputs, 0)
-  while(answer.first == -Infinity) {
-    answer = reduceFrequencies(inputs, answer.acc, answer.freq);
-  }
+  const answer = reduceFrequencies(inputs, 0);
 
-  console.log(`answer: ${answer.first}`);
+  console.log(`answer: ${answer}`);
   console.log(`after ${(Date.now() - startTime) / 1000} seconds`);
 })();
