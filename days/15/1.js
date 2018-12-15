@@ -57,6 +57,7 @@ class Piece {
       }
       case '#': {
         this.isWall = true;
+        this.isEmpty = false;
         this.char = '#';
         break;
       }
@@ -106,10 +107,11 @@ class Board {
       });
     });
   }
+  transpose() {
+    return this.pieces[0].map((x,i) => this.pieces.map(y => y[i].isEmpty ? 1 : 0));
+  }
   getGraph() {
-    return new Graph(this.pieces.map(row => {
-      return row.map(p => p.isEmpty ? 1 : 0);
-    }));
+    return new Graph(this.transpose());
   }
   sum() {
     return this.pieces.reduce((acc, row) => {
@@ -143,7 +145,6 @@ class Board {
         return false;
       }
 
-      const ranges = adversaries.reduce((acc, a) => [...acc, ...a.piece.getAdjacentPieces()], []);
       let target = adversaries.reduce((acc, a) => {
         const d = Math.abs(a.piece.x - piece.x) + Math.abs(a.piece.y - piece.y);
         if (d === 1) {
@@ -162,14 +163,20 @@ class Board {
         }
       // MOVE
       } else {
-        const start = graph.grid[piece.y][piece.x];
+        const ranges = adversaries.reduce((acc, a) => {
+          if (a.isAlive()) {
+            return [...acc, ...a.piece.getAdjacentPieces()]
+          }
+          return acc;
+        }, []);
+        const start = graph.grid[piece.x][piece.y];
         const { nextMove } = ranges.reduce((acc, p) => {
-          const end = graph.grid[p.y][p.x];
-          const path = astar.search(graph, start, end);
+          const end = graph.grid[p.x][p.y];
+          const path = astar.search(graph, start, end, { heuristic: () => 0 });
           const length = path.length;
           if (path.length > 0 && length < acc.minLength) {
             const { x, y } = path[0];
-            return { nextMove: [ x, y ], minLength: length };
+            return { nextMove: [ y, x ], minLength: length };
           }
           return acc;
         }, { nextMove: [], minLength: Infinity });
@@ -214,7 +221,8 @@ class Board {
 }
 
 (async () => {
-  const unfilteredInputs = await readFile(`${__dirname}/test3.txt`, inputParser);
+  // 203025
+  const unfilteredInputs = await readFile(`${__dirname}/input.txt`, inputParser);
   const arr2d = unfilteredInputs.filter(filterFn);
   const board = new Board(arr2d);
   //console.log(board.toString());

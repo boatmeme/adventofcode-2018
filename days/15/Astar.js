@@ -195,19 +195,14 @@ Graph.prototype.neighbors = function(node) {
   var y = node.y;
   var grid = this.grid;
 
-  // West
-  if (grid[x - 1] && grid[x - 1][y]) {
-    ret.push(grid[x - 1][y]);
-  }
-
   // North
   if (grid[x] && grid[x][y + 1]) {
     ret.push(grid[x][y + 1]);
   }
 
-  // South
-  if (grid[x] && grid[x][y - 1]) {
-    ret.push(grid[x][y - 1]);
+  // West
+  if (grid[x - 1] && grid[x - 1][y]) {
+    ret.push(grid[x - 1][y]);
   }
 
   // East
@@ -215,7 +210,10 @@ Graph.prototype.neighbors = function(node) {
     ret.push(grid[x + 1][y]);
   }
 
-
+  // South
+  if (grid[x] && grid[x][y - 1]) {
+    ret.push(grid[x][y - 1]);
+  }
 
   if (this.diagonal) {
     // Southwest
@@ -343,6 +341,23 @@ BinaryHeap.prototype = {
         this.content[n] = parent;
         // Update 'n' to continue at the new position.
         n = parentN;
+      } else if (this.scoreFunction(element) === this.scoreFunction(parent)) {
+        let sinkByOrder = false;
+        if (element.y < parent.y) {
+          sinkByOrder = true;
+        } else if (element.y === parent.y) {
+          if (element.x < parent.x) {
+            sinkByOrder = true;
+          }
+        }
+        if (sinkByOrder) {
+          this.content[parentN] = element;
+          this.content[n] = parent;
+          // Update 'n' to continue at the new position.
+          n = parentN;
+        } else {
+          break;
+        }
       }
       // Found a parent that is less, no need to sink any further.
       else {
@@ -372,6 +387,18 @@ BinaryHeap.prototype = {
         // If the score is less than our element's, we need to swap.
         if (child1Score < elemScore) {
           swap = child1N;
+        } else if (child1Score === elemScore) {
+          let sinkByOrder = false;
+          if (child1.y < element.y) {
+            sinkByOrder = true;
+          } else if (child1.y === element.y) {
+            if (child1.x < element.x) {
+              sinkByOrder = true;
+            }
+          }
+          if (sinkByOrder) {
+            swap = child1N;
+          }
         }
       }
 
@@ -379,8 +406,22 @@ BinaryHeap.prototype = {
       if (child2N < length) {
         var child2 = this.content[child2N];
         var child2Score = this.scoreFunction(child2);
-        if (child2Score < (swap === null ? elemScore : child1Score)) {
+        const comparatorScore = (swap === null ? elemScore : child1Score);
+        const comparator = (swap === null ? element : this.content[child1N])
+        if (child2Score < comparatorScore) {
           swap = child2N;
+        } else if (child2Score === comparatorScore) {
+          let sinkByOrder = false;
+          if (child2.y < comparator.y) {
+            sinkByOrder = true;
+          } else if (child2.y === comparator.y) {
+            if (child2.x < comparator.x) {
+              sinkByOrder = true;
+            }
+          }
+          if (sinkByOrder) {
+            swap = child2N;
+          }
         }
       }
 
