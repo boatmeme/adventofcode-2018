@@ -131,23 +131,25 @@ const filterFn = o => o !== null;
 
 const wait = timeInMillis => new Promise((resolve, reject) => setTimeout(resolve, timeInMillis));
 
-const calcFurthestShortPath = path => {
+const calcFurthestShortPath = (path, num) => {
   const flatPaths = path.flatten();
   console.log(`all paths: ${flatPaths.length}`);
   const unique = uniquePaths(flatPaths);
   console.log(`unique paths: ${unique.length}`);
 
-  return unique.reduce((max, p) => {
-    const min = path.walk(p.coords).reduce((acc, p) => p < acc ? p : acc, Infinity);
-    return min > max ? min : max;
-  }, -Infinity);
+  return unique.reduce((sum, p) => {
+    const candidates = path.walk(p.coords);
+    const min = candidates.reduce((acc, n) => n < acc ? n : acc, Infinity);
+    return min >= num ? sum + 1 : sum;
+  }, 0);
 }
 
 (async () => {
   console.log(`Note, I ran this with 'node --stack-size=16000 1.js'`);
   const unfilteredInputs = await readFile(`${__dirname}/input.txt`, inputParser);
   const path = unfilteredInputs.filter(filterFn)[0];
-  const answer = calcFurthestShortPath(path);
+
+  const answer = calcFurthestShortPath(path, 1000);
   console.log(`answer: ${answer}`);
   console.log(`after ${(Date.now() - startTime) / 1000} seconds`);
 })();
