@@ -43,22 +43,53 @@ const mapVolumes = (arr) => arr.map(bot => {
   });
 });
 
+class Point {
+  constructor(name, point, type) {
+    this.name = name;
+    this.point = point;
+    this.type = type;
+  }
+}
+
+const marzullo = (ranges) => {
+  let best = 0;
+  let count = 0;
+  let beststart = 0;
+  let bestend = 0;
+  let i = 0;
+  let name = "";
+  let points = [];
+
+  ranges.forEach(bot => {
+    points.push(new Point(bot, bot.min, -1));
+    points.push(new Point(bot, bot.max, 1));
+  });
+
+  points.sort(function(a, b) {
+    return (a.point - b.point) || (b.type - a.type);
+  });
+
+  points.forEach(function(p) {
+    count = count - p.type;
+    if(best < count) {
+      best = count;
+      beststart = p.point;
+      if (i < points.length-1) {
+        bestend = points[i+1].point;
+        name = p.name + "," + points[i+1].name;
+      }
+    }
+    i++;
+  });
+  return { start: beststart, end: bestend };
+}
+
 (async () => {
   const unfilteredInputs = await readFile(`${__dirname}/input.txt`, inputParser);
   const arr = unfilteredInputs.filter(filterFn);
 
   const volumes = mapVolumes(arr);
-  const answer = volumes.reduce((acc, bot) => {
-    acc.volumeAcc += bot.max - bot.min;
-    if (acc.volumeAcc > acc.max) {
-      acc.max = acc.volumeAcc;
-      acc.maxStart = bot.max + 1;
-    }
-    return acc;
-  }, { volumeAcc: 0, maxStart: -Infinity, max: -Infinity });
-
-  // Too Low: 58947513
-  // Too High: 201708585
+  const answer = marzullo(arr);
 
   console.log(answer);
   //console.log(`answer: ${inRangeBots.length}\n`);
