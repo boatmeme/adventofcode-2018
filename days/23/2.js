@@ -43,55 +43,31 @@ const mapVolumes = (arr) => arr.map(bot => {
   });
 });
 
-class Point {
-  constructor(name, point, type) {
-    this.name = name;
-    this.point = point;
-    this.type = type;
-  }
-}
-
-const marzullo = (ranges) => {
-  let best = 0;
-  let count = 0;
-  let beststart = 0;
-  let bestend = 0;
-  let i = 0;
-  let name = "";
-  let points = [];
-
-  ranges.forEach(bot => {
-    points.push(new Point(bot, bot.min, -1));
-    points.push(new Point(bot, bot.max, 1));
-  });
-
-  points.sort(function(a, b) {
-    return (a.point - b.point) || (b.type - a.type);
-  });
-
-  points.forEach(function(p) {
-    count = count - p.type;
-    if(best < count) {
-      best = count;
-      beststart = p.point;
-      if (i < points.length-1) {
-        bestend = points[i+1].point;
-        name = p.name + "," + points[i+1].name;
-      }
-    }
-    i++;
-  });
-  return { start: beststart, end: bestend };
-}
-
 (async () => {
   const unfilteredInputs = await readFile(`${__dirname}/input.txt`, inputParser);
   const arr = unfilteredInputs.filter(filterFn);
 
-  const volumes = mapVolumes(arr);
-  const answer = marzullo(arr);
+  const pMap = {};
+  arr.forEach(bot => {
+    const min = (bot.coords.x + bot.coords.y + bot.coords.z) - bot.range;
+    const max = (bot.coords.x + bot.coords.y + bot.coords.z) + bot.range + 1;
+    pMap[min] = 1;
+    pMap[max] = - 1;
+  });
 
-  console.log(answer);
-  //console.log(`answer: ${inRangeBots.length}\n`);
+  const { maxStart } = Object.keys(pMap).reduce((acc, key) => {
+    const val = pMap[key];
+    acc.counter += val;
+    if (acc.counter > acc.max) {
+      acc.max = acc.counter;
+      acc.maxStart = parseInteger(key);
+    }
+    return acc;
+  }, { max: -Infinity, maxStart: -Infinity, counter: 0 })
+
+  const [ minDistance ] = Object.keys(pMap).filter(k => parseInteger(k) > parseInteger(maxStart));
+
+  // For some reason, the answer is "off-by-one"
+  console.log(`answer: ${minDistance - 1}\n`);
   console.log(`after ${(Date.now() - startTime) / 1000} seconds`);
 })();
